@@ -117,17 +117,17 @@ _write_hf_token_if_supplied() {
 
 run__do_install() {
 	local setup_args=()
-	case "${model:-}" in
+	case "${embedding_model:-}" in
 		none) run__do_disable; return ;;
 		all-minilm-l6-v2|bge-small-en-v1.5|multilingual-e5-small|qwen3-embedding-0.6b) ;;
 		custom) [ -n "${custom_model_url:-}" ] || ynh_die "Enter a Hugging Face model URL or owner/model id for Custom" ;;
-		*) ynh_die "Unknown embedding model: ${model:-}" ;;
+		*) ynh_die "Unknown embedding model: ${embedding_model:-}" ;;
 	esac
 	_write_hf_token_if_supplied "${hf_token:-}"
 	if [ -n "${custom_model_url:-}" ]; then
 		setup_args+=(--custom-url "$custom_model_url")
 	fi
-	"$install_dir/venv/bin/polypack-mcp" embeddings setup "${model}" "${setup_args[@]}" \
+	"$install_dir/venv/bin/polypack-mcp" embeddings setup "${embedding_model}" "${setup_args[@]}" \
 		--system --store "$data_dir" \
 		|| ynh_die "Embedding model setup failed - check the operation output"
 	polypack_mcp_write_embedding_custom_url "${custom_model_url:-}"
@@ -154,10 +154,10 @@ run__do_clear_token() {
 
 run__do_apply() {
 	local limit_bytes
-	limit_bytes="$(_storage_choice_bytes "${limit:-disabled}")"
+	limit_bytes="$(_storage_choice_bytes "${storage_limit:-disabled}")"
 	polypack_mcp_write_runtime_env "$limit_bytes"
 	ynh_systemctl --service="$app" --action="restart" --log_path="systemd" --wait_until="Uvicorn running on"
-	ynh_print_info "Database cleanup policy applied: ${limit:-disabled}."
+	ynh_print_info "Database cleanup policy applied: ${storage_limit:-disabled}."
 }
 
 ynh_app_config_run "$1"

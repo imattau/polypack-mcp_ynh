@@ -9,7 +9,12 @@ services = []
 help.en = "Optional local embeddings are downloaded from Hugging Face, kept in the Polypack data directory, and served only over localhost. The small MiniLM model is the safe default for modest YunoHost servers."
 help.fr = "Les embeddings locaux facultatifs sont téléchargés depuis Hugging Face, conservés dans le répertoire de données Polypack et servis uniquement sur localhost. Le petit modèle MiniLM est la valeur par défaut pour les serveurs YunoHost modestes."
 
-    [embeddings.model]
+    [embeddings.setup]
+    name.en = "Embedding setup"
+    name.fr = "Configuration des embeddings"
+    services = []
+
+        [embeddings.setup.embedding_model]
     ask.en = "Embedding model"
     ask.fr = "Modèle d'embeddings"
     type = "select"
@@ -19,7 +24,7 @@ help.fr = "Les embeddings locaux facultatifs sont téléchargés depuis Hugging 
     help.en = "MiniLM is the smallest option; BGE is a strong English alternative; E5 covers many languages; Qwen3 is the largest and most capable listed option."
     help.fr = "MiniLM est l'option la plus légère ; BGE est une bonne alternative anglaise ; E5 couvre de nombreuses langues ; Qwen3 est l'option listée la plus grande et la plus capable."
 
-    [embeddings.custom_model_url]
+        [embeddings.setup.custom_model_url]
     ask.en = "Custom Hugging Face model URL or owner/model id"
     ask.fr = "URL Hugging Face personnalisée ou identifiant owner/model"
     type = "string"
@@ -29,7 +34,7 @@ help.fr = "Les embeddings locaux facultatifs sont téléchargés depuis Hugging 
     help.en = "Used only when Custom is selected. Use a Hugging Face model repository page or owner/model id, not a link to one individual weight file."
     help.fr = "Utilisé uniquement lorsque Personnalisé est sélectionné. Utilisez la page d'un dépôt de modèle Hugging Face ou owner/model, pas le lien vers un seul fichier de poids."
 
-    [embeddings.hf_token]
+        [embeddings.setup.hf_token]
     ask.en = "Hugging Face API token (optional)"
     ask.fr = "Jeton API Hugging Face (facultatif)"
     type = "password"
@@ -38,13 +43,13 @@ help.fr = "Les embeddings locaux facultatifs sont téléchargés depuis Hugging 
     help.en = "Optional hf_... token for authenticated/faster downloads. It is stored with mode 0600 and is never shown in status output. Leave blank to keep the current token."
     help.fr = "Jeton hf_... facultatif pour des téléchargements authentifiés/plus rapides. Il est conservé en mode 0600 et n'apparaît jamais dans l'état. Laissez vide pour conserver le jeton actuel."
 
-    [embeddings.status]
+        [embeddings.setup.embedding_status]
     ask.en = "Current embedding status"
     ask.fr = "État actuel des embeddings"
     type = "alert"
     style = "info"
 
-    [embeddings.do_install]
+        [embeddings.setup.do_install]
     ask.en = "Download/install selected model"
     ask.fr = "Télécharger/installer le modèle sélectionné"
     type = "button"
@@ -52,13 +57,13 @@ help.fr = "Les embeddings locaux facultatifs sont téléchargés depuis Hugging 
     help.en = "Creates the isolated helper environment, downloads/caches the selected model, reindexes existing memories, and enables semantic retrieval."
     help.fr = "Crée l'environnement isolé, télécharge/met en cache le modèle sélectionné, réindexe les mémoires existantes et active la recherche sémantique."
 
-    [embeddings.do_disable]
+        [embeddings.setup.do_disable]
     ask.en = "Disable semantic retrieval (keep cache)"
     ask.fr = "Désactiver la recherche sémantique (conserver le cache)"
     type = "button"
     style = "danger"
 
-    [embeddings.do_clear_token]
+        [embeddings.setup.do_clear_token]
     ask.en = "Clear Hugging Face token"
     ask.fr = "Effacer le jeton Hugging Face"
     type = "button"
@@ -71,7 +76,12 @@ services = ["polypack_mcp"]
 help.en = "When the graph store exceeds the selected limit, Polypack removes suppressed/superseded memories first, then the least activated and oldest memories, until it reaches a 10% safety buffer. The embedding model cache is not included."
 help.fr = "Lorsque le stockage du graphe dépasse la limite sélectionnée, Polypack supprime d'abord les mémoires supprimées/remplacées, puis les mémoires les moins activées et les plus anciennes, jusqu'à atteindre une marge de sécurité de 10 %. Le cache du modèle n'est pas inclus."
 
-    [storage.limit]
+    [storage.policy]
+    name.en = "Cleanup policy"
+    name.fr = "Politique de nettoyage"
+    services = ["polypack_mcp"]
+
+        [storage.policy.storage_limit]
     ask.en = "Database cleanup limit"
     ask.fr = "Limite avant nettoyage de la base"
     type = "select"
@@ -79,13 +89,13 @@ help.fr = "Lorsque le stockage du graphe dépasse la limite sélectionnée, Poly
     default = "2 GiB"
     bind = "null"
 
-    [storage.status]
+        [storage.policy.storage_status]
     ask.en = "Current database usage"
     ask.fr = "Utilisation actuelle de la base"
     type = "alert"
     style = "info"
 
-    [storage.do_apply]
+        [storage.policy.do_apply]
     ask.en = "Apply storage policy"
     ask.fr = "Appliquer la politique de stockage"
     type = "button"
