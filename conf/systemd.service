@@ -1,0 +1,28 @@
+[Unit]
+Description=Polypack MCP local persistent memory service
+After=network.target
+
+[Service]
+Type=simple
+User=__APP__
+Group=__APP__
+WorkingDirectory=__INSTALL_DIR__
+Environment=PATH=__INSTALL_DIR__/venv/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=__INSTALL_DIR__/venv/bin/polypack-mcp --transport streamable-http --host 127.0.0.1 --port __PORT__ --store __DATA_DIR__
+Restart=on-failure
+RestartSec=3
+
+# This service is an internal MCP endpoint. It is intentionally loopback-only
+# and has no web-facing YunoHost permission or Nginx configuration.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ReadWritePaths=__DATA_DIR__
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+source "$(dirname "$0")/_common.sh"
+source /usr/share/yunohost/helpers
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_script_progression "Setting up source files..."
+ynh_setup_source --dest_dir="$install_dir"
+polypack_mcp_remove_upstream_runtime_artifacts
+
+#=================================================
+# INSTALL PYTHON VIRTUAL ENVIRONMENT
+#=================================================
+ynh_script_progression "Setting up the Python virtual environment..."
+polypack_mcp_install_venv
+
+#=================================================
+# PERSISTENT DATA DIRECTORY
+#=================================================
+ynh_script_progression "Setting up the persistent memory store..."
+polypack_mcp_prepare_data_dir
+
+#=================================================
+# SYSTEM CONFIGURATION
+#=================================================
+ynh_script_progression "Adding system configurations related to $app..."
+ynh_config_add_systemd
+yunohost service add "$app" --description="Local Polypack MCP memory service"
+
+#=================================================
+# START APP
+#=================================================
+ynh_script_progression "Starting $app's systemd service..."
+ynh_systemctl --service="$app" --action="start" \
+	--log_path="systemd" \
+	--wait_until="Uvicorn running on"
+
+ynh_print_info "Local MCP endpoint: http://127.0.0.1:$port/mcp/"
+ynh_script_progression "Installation of $app completed"

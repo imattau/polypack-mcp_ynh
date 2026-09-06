@@ -1,0 +1,13 @@
+#!/bin/bash
+
+source /usr/share/yunohost/helpers
+
+ynh_print_info "Declaring files to be backed up..."
+
+# The venv is included so a restore can bring the service back immediately;
+# the durable store is the critical user data.
+ynh_backup "$install_dir"
+ynh_backup "$data_dir"
+ynh_backup "/etc/systemd/system/$app.service"
+
+ynh_print_info "Backup script completed for $app."

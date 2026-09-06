@@ -1,0 +1,21 @@
+#!/bin/bash
+
+source "$(dirname "$0")/_common.sh"
+source /usr/share/yunohost/helpers
+
+#=================================================
+# REMOVE SYSTEM CONFIGURATION
+#=================================================
+ynh_script_progression "Removing system configurations related to $app..."
+ynh_systemctl --service="$app" --action="stop" || true
+
+if ynh_hide_warnings yunohost service status "$app" >/dev/null 2>&1; then
+	yunohost service remove "$app"
+fi
+
+ynh_config_remove_systemd
+
+# The data directory is managed by the YunoHost resource lifecycle. It is not
+# removed manually here, so normal YunoHost removal retains its usual data
+# handling and purge semantics.
+ynh_script_progression "Removal of $app completed"
