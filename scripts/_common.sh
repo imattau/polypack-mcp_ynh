@@ -25,6 +25,18 @@ polypack_mcp_embedding_env_file() {
 	echo "$data_dir/.embedding/embedding.env"
 }
 
+polypack_mcp_embedding_port() {
+	local candidate
+	candidate="${port_embedding:-}"
+	if [ -z "$candidate" ]; then
+		candidate="$(ynh_app_setting_get --app="$app" --key=port_embedding 2>/dev/null || true)"
+	fi
+	case "$candidate" in
+		''|*[!0-9]*) return 1 ;;
+	esac
+	printf '%s' "$candidate"
+}
+
 polypack_mcp_register_embedding_service() {
 	# Keep the optional helper visible to YunoHost's service/log tooling. The
 	# unit is created by the upstream embedding command, so registration is
@@ -36,12 +48,11 @@ polypack_mcp_register_embedding_service() {
 }
 
 polypack_mcp_stop_embedding_service() {
-	# A timed-out config action can leave an old helper process holding the
-	# fixed localhost port. Clear it before the next systemd start/restart.
+	# A timed-out config action can leave an old helper process behind. Stop and
+	# kill only the managed unit; never use a broad port kill because another
+	# YunoHost app may legitimately own the old/default port.
 	systemctl stop polypack-mcp-embedding.service >/dev/null 2>&1 || true
-	if command -v fuser >/dev/null 2>&1; then
-		fuser -k -TERM 8766/tcp >/dev/null 2>&1 || true
-	fi
+	systemctl kill --kill-who=all --signal=TERM polypack-mcp-embedding.service >/dev/null 2>&1 || true
 }
 
 polypack_mcp_write_runtime_env() {

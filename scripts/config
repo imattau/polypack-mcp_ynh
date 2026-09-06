@@ -116,7 +116,9 @@ _write_hf_token_if_supplied() {
 }
 
 run__do_install() {
-	local setup_args=()
+	local setup_args=() embedding_port
+	embedding_port="$(polypack_mcp_embedding_port || true)"
+	[ -n "$embedding_port" ] || ynh_die "YunoHost did not allocate an embedding helper port"
 	polypack_mcp_stop_embedding_service
 	polypack_mcp_register_embedding_service
 	case "${embedding_model:-}" in
@@ -131,6 +133,7 @@ run__do_install() {
 	fi
 	"$install_dir/venv/bin/polypack-mcp" embeddings setup "${embedding_model}" "${setup_args[@]}" \
 		--system --store "$data_dir" \
+		--port "$embedding_port" \
 		--main-service "${app}.service" --service-user "$app" --service-group "$app" \
 		|| ynh_die "Embedding model setup failed - check the operation output"
 	polypack_mcp_write_embedding_custom_url "${custom_model_url:-}"
