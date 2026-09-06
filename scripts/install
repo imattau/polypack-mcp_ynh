@@ -21,6 +21,7 @@ polypack_mcp_install_venv
 #=================================================
 ynh_script_progression "Setting up the persistent memory store..."
 polypack_mcp_prepare_data_dir
+polypack_mcp_write_runtime_env $((2 * 1024 * 1024 * 1024))
 
 #=================================================
 # SYSTEM CONFIGURATION

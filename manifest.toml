@@ -7,7 +7,7 @@ name = "Polypack MCP"
 description.en = "Local persistent memory service for MCP clients and YunoHost MCP"
 description.fr = "Service local de mémoire persistante pour les clients MCP et YunoHost MCP"
 
-version = "0.1.27~ynh1"
+version = "0.1.28~ynh1"
 maintainers = ["imattau"]
 
 [upstream]
@@ -24,9 +24,9 @@ architectures = ["amd64"]
 multi_instance = false
 ldap = "not_relevant"
 sso = "not_relevant"
-disk = "500M"
+disk = "3G"
 ram.build = "1G"
-ram.runtime = "256M"
+ram.runtime = "1G"
 
 [install]
 # This is a local infrastructure service: it has no domain, path, browser
@@ -34,8 +34,8 @@ ram.runtime = "256M"
 
 [resources]
     [resources.sources.main]
-    url = "https://github.com/imattau/polypack-mcp/archive/refs/tags/v0.1.27.tar.gz"
-    sha256 = "79fac349801e800d217460ffcb048fc00053c02a952745fc0f32b3451fd4bce1"
+    url = "https://github.com/imattau/polypack-mcp/archive/refs/tags/v0.1.28.tar.gz"
+    sha256 = "6a32c8a20ac3af1cc36ff20c7380dec774e9258099c6e33d609642e5b3be17b2"
     autoupdate.strategy = "latest_github_tag"
 
     [resources.system_user]

@@ -23,6 +23,13 @@ ynh_script_progression "Updating the Python virtual environment..."
 polypack_mcp_install_venv
 
 #=================================================
+# PRESERVE RUNTIME POLICY
+#=================================================
+limit_bytes="$(sed -n 's/^POLYPACK_MCP_STORAGE_LIMIT_BYTES=//p' "$(polypack_mcp_runtime_env_file)" 2>/dev/null || true)"
+polypack_mcp_prepare_data_dir
+polypack_mcp_write_runtime_env "${limit_bytes:-0}"
+
+#=================================================
 # REAPPLY SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression "Updating system configurations related to $app..."

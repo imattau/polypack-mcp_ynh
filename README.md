@@ -10,8 +10,11 @@ integration, where authenticated remote agents reach Polypack through the
 YunoHost MCP service.
 
 The durable store is kept in the YunoHost-managed data directory and is backed
-up with the application. The package does not enable the optional Qwen embedding
-helper; that feature needs a YunoHost-native service design before inclusion.
+up with the application. The package includes an optional configuration panel
+for managed Hugging Face embedding models. It downloads models into the
+app-owned cache, supports an optional HF API token, accepts a custom Hugging
+Face repository, and controls a conservative database disk-usage cleanup
+limit; the embedding cache is excluded from that limit.
 
 ## Local endpoint
 
@@ -22,3 +25,6 @@ http://127.0.0.1:8765/mcp/
 ```
 
 The actual port is allocated by YunoHost and is printed after installation.
+
+Open the app's YunoHost configuration panel to choose and install semantic
+retrieval, inspect the helper/cache status, or set the database cleanup limit.

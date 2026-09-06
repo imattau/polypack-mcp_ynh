@@ -9,6 +9,7 @@ Group=__APP__
 WorkingDirectory=__INSTALL_DIR__
 Environment=PATH=__INSTALL_DIR__/venv/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-__DATA_DIR__/polypack.env
 ExecStart=__INSTALL_DIR__/venv/bin/polypack-mcp --transport streamable-http --host 127.0.0.1 --port __PORT__ --store __DATA_DIR__
 Restart=on-failure
 RestartSec=3

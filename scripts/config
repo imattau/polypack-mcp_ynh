@@ -1,0 +1,163 @@
+#!/bin/bash
+
+source "$(dirname "$0")/_common.sh"
+source /usr/share/yunohost/helpers
+
+ynh_abort_if_errors
+
+install_dir="$(ynh_app_setting_get --key=install_dir)"
+data_dir="$(ynh_app_setting_get --key=data_dir)"
+
+embedding_env="$(polypack_mcp_embedding_env_file)"
+runtime_env="$(polypack_mcp_runtime_env_file)"
+
+_embedding_value() {
+	local key="$1"
+	sed -n "s/^${key}=//p" "$embedding_env" 2>/dev/null | head -n1
+}
+
+_storage_choice_bytes() {
+	case "$1" in
+		disabled) echo 0 ;;
+		"512 MiB") echo $((512 * 1024 * 1024)) ;;
+		"1 GiB") echo $((1 * 1024 * 1024 * 1024)) ;;
+		"2 GiB") echo $((2 * 1024 * 1024 * 1024)) ;;
+		"5 GiB") echo $((5 * 1024 * 1024 * 1024)) ;;
+		"10 GiB") echo $((10 * 1024 * 1024 * 1024)) ;;
+		"20 GiB") echo $((20 * 1024 * 1024 * 1024)) ;;
+		"50 GiB") echo $((50 * 1024 * 1024 * 1024)) ;;
+		*) ynh_die "Unknown database cleanup limit: $1" ;;
+	esac
+}
+
+_storage_bytes_choice() {
+	case "$1" in
+		0|"") echo disabled ;;
+		$((512 * 1024 * 1024))) echo "512 MiB" ;;
+		$((1 * 1024 * 1024 * 1024))) echo "1 GiB" ;;
+		$((2 * 1024 * 1024 * 1024))) echo "2 GiB" ;;
+		$((5 * 1024 * 1024 * 1024))) echo "5 GiB" ;;
+		$((10 * 1024 * 1024 * 1024))) echo "10 GiB" ;;
+		$((20 * 1024 * 1024 * 1024))) echo "20 GiB" ;;
+		$((50 * 1024 * 1024 * 1024))) echo "50 GiB" ;;
+		*) echo disabled ;;
+	esac
+}
+
+_embedding_key_for_model() {
+	case "$1" in
+		sentence-transformers/all-MiniLM-L6-v2) echo all-minilm-l6-v2 ;;
+		BAAI/bge-small-en-v1.5) echo bge-small-en-v1.5 ;;
+		intfloat/multilingual-e5-small) echo multilingual-e5-small ;;
+		Qwen/Qwen3-Embedding-0.6B) echo qwen3-embedding-0.6b ;;
+		"") echo all-minilm-l6-v2 ;;
+		*) echo custom ;;
+	esac
+}
+
+get__embedding_model() {
+	_embedding_key_for_model "$(_embedding_value POLYPACK_MCP_EMBEDDING_MODEL)"
+}
+
+get__custom_model_url() {
+	_embedding_value POLYPACK_MCP_EMBEDDING_CUSTOM_URL
+}
+
+get__embedding_status() {
+	local model cache_size state
+	model="$(_embedding_value POLYPACK_MCP_EMBEDDING_MODEL)"
+	cache_size="$(du -sh "$data_dir/.embedding/cache" 2>/dev/null | awk '{print $1}' || true)"
+	cache_size="${cache_size:-0}"
+	if systemctl is-active --quiet polypack-mcp-embedding.service; then
+		state="enabled and running"
+	else
+		state="disabled/not running"
+	fi
+	cat <<EOF
+ask:
+  en: "Embedding helper: $state; configured model: ${model:-none}; cached files: $cache_size."
+  fr: "Assistant embeddings : $state ; modèle configuré : ${model:-aucun} ; fichiers en cache : $cache_size."
+EOF
+}
+
+get__storage_limit() {
+	local bytes
+	bytes="$(sed -n 's/^POLYPACK_MCP_STORAGE_LIMIT_BYTES=//p' "$runtime_env" 2>/dev/null | head -n1)"
+	_storage_bytes_choice "${bytes:-0}"
+}
+
+get__storage_status() {
+	local usage limit
+	usage="$(du -sb --exclude='.embedding' "$data_dir" 2>/dev/null | awk '{print $1}' || true)"
+	limit="$(sed -n 's/^POLYPACK_MCP_STORAGE_LIMIT_BYTES=//p' "$runtime_env" 2>/dev/null | head -n1)"
+	usage="${usage:-0}"
+	limit="${limit:-0}"
+	cat <<EOF
+ask:
+  en: "Database files: ${usage} bytes; cleanup limit: ${limit:-0} bytes ($(_storage_bytes_choice "${limit:-0}"))."
+  fr: "Fichiers de base : ${usage} octets ; limite de nettoyage : ${limit:-0} octets ($(_storage_bytes_choice "${limit:-0}"))."
+EOF
+}
+
+_write_hf_token_if_supplied() {
+	local token="${1:-}" tmp
+	[ -n "$token" ] || return 0
+	mkdir -p "$(dirname "$embedding_env")"
+	tmp="${embedding_env}.tmp"
+	if [ -f "$embedding_env" ]; then
+		grep -v '^HF_TOKEN=' "$embedding_env" >"$tmp" || true
+	else
+		: >"$tmp"
+	fi
+	printf 'HF_TOKEN=%s\n' "$token" >>"$tmp"
+	mv "$tmp" "$embedding_env"
+	chown "$app:$app" "$embedding_env"
+	chmod 0600 "$embedding_env"
+}
+
+run__do_install() {
+	local setup_args=()
+	case "${model:-}" in
+		none) run__do_disable; return ;;
+		all-minilm-l6-v2|bge-small-en-v1.5|multilingual-e5-small|qwen3-embedding-0.6b) ;;
+		custom) [ -n "${custom_model_url:-}" ] || ynh_die "Enter a Hugging Face model URL or owner/model id for Custom" ;;
+		*) ynh_die "Unknown embedding model: ${model:-}" ;;
+	esac
+	_write_hf_token_if_supplied "${hf_token:-}"
+	if [ -n "${custom_model_url:-}" ]; then
+		setup_args+=(--custom-url "$custom_model_url")
+	fi
+	"$install_dir/venv/bin/polypack-mcp" embeddings setup "${model}" "${setup_args[@]}" \
+		--system --store "$data_dir" \
+		|| ynh_die "Embedding model setup failed - check the operation output"
+	polypack_mcp_write_embedding_custom_url "${custom_model_url:-}"
+	ynh_print_info "Embedding model installed, cached, indexed, and enabled."
+}
+
+run__do_disable() {
+	"$install_dir/venv/bin/polypack-mcp" embeddings disable --system --store "$data_dir" \
+		|| ynh_die "Could not disable semantic retrieval"
+	ynh_print_info "Semantic retrieval disabled; the model cache was retained."
+}
+
+run__do_clear_token() {
+	[ -f "$embedding_env" ] || return 0
+	grep -v '^HF_TOKEN=' "$embedding_env" >"${embedding_env}.tmp" || true
+	mv "${embedding_env}.tmp" "$embedding_env"
+	chown "$app:$app" "$embedding_env"
+	chmod 0600 "$embedding_env"
+	if systemctl is-active --quiet polypack-mcp-embedding.service; then
+		systemctl restart polypack-mcp-embedding.service
+	fi
+	ynh_print_info "Hugging Face token cleared."
+}
+
+run__do_apply() {
+	local limit_bytes
+	limit_bytes="$(_storage_choice_bytes "${limit:-disabled}")"
+	polypack_mcp_write_runtime_env "$limit_bytes"
+	ynh_systemctl --service="$app" --action="restart" --log_path="systemd" --wait_until="Uvicorn running on"
+	ynh_print_info "Database cleanup policy applied: ${limit:-disabled}."
+}
+
+ynh_app_config_run "$1"
