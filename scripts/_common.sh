@@ -25,6 +25,16 @@ polypack_mcp_embedding_env_file() {
 	echo "$data_dir/.embedding/embedding.env"
 }
 
+polypack_mcp_register_embedding_service() {
+	# Keep the optional helper visible to YunoHost's service/log tooling. The
+	# unit is created by the upstream embedding command, so registration is
+	# conditional for installs that have never enabled embeddings.
+	if [ -f /etc/systemd/system/polypack-mcp-embedding.service ]; then
+		yunohost service add "polypack-mcp-embedding" \
+			--description="Local Polypack embedding helper" >/dev/null 2>&1 || true
+	fi
+}
+
 polypack_mcp_write_runtime_env() {
 	local limit_bytes="${1:-0}"
 	mkdir -p "$data_dir"

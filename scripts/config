@@ -117,6 +117,7 @@ _write_hf_token_if_supplied() {
 
 run__do_install() {
 	local setup_args=()
+	polypack_mcp_register_embedding_service
 	case "${embedding_model:-}" in
 		none) run__do_disable; return ;;
 		all-minilm-l6-v2|bge-small-en-v1.5|multilingual-e5-small|qwen3-embedding-0.6b) ;;
@@ -136,6 +137,7 @@ run__do_install() {
 }
 
 run__do_disable() {
+	polypack_mcp_register_embedding_service
 	"$install_dir/venv/bin/polypack-mcp" embeddings disable --system --store "$data_dir" \
 		--main-service "${app}.service" \
 		|| ynh_die "Could not disable semantic retrieval"
