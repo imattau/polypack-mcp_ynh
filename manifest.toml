@@ -11,8 +11,6 @@ version = "0.1.27~ynh1"
 maintainers = ["imattau"]
 
 [upstream]
-# FIXME: The upstream repository currently has no LICENSE file or declared
-# project license. Confirm this value before publishing the package.
 license = "MIT"
 code = "https://github.com/imattau/polypack-mcp"
 admindoc = "https://github.com/imattau/polypack-mcp/blob/master/README.md"
