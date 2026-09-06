@@ -7,7 +7,7 @@ name = "Polypack MCP"
 description.en = "Local persistent memory service for MCP clients and YunoHost MCP"
 description.fr = "Service local de mémoire persistante pour les clients MCP et YunoHost MCP"
 
-version = "0.1.28~ynh4"
+version = "0.1.28~ynh5"
 maintainers = ["imattau"]
 
 [upstream]
