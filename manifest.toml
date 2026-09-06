@@ -7,7 +7,7 @@ name = "Polypack MCP"
 description.en = "Local persistent memory service for MCP clients and YunoHost MCP"
 description.fr = "Service local de mémoire persistante pour les clients MCP et YunoHost MCP"
 
-version = "0.1.30~ynh1"
+version = "0.1.30~ynh2"
 maintainers = ["imattau"]
 
 [upstream]
@@ -49,4 +49,4 @@ ram.runtime = "1G"
     exposed = false
 
     [resources.apt]
-    packages = "python3-venv, python3-dev, build-essential, ca-certificates"
+    packages = "python3-venv, python3-dev, build-essential, ca-certificates, psmisc"

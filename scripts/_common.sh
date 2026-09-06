@@ -35,6 +35,15 @@ polypack_mcp_register_embedding_service() {
 	fi
 }
 
+polypack_mcp_stop_embedding_service() {
+	# A timed-out config action can leave an old helper process holding the
+	# fixed localhost port. Clear it before the next systemd start/restart.
+	systemctl stop polypack-mcp-embedding.service >/dev/null 2>&1 || true
+	if command -v fuser >/dev/null 2>&1; then
+		fuser -k -TERM 8766/tcp >/dev/null 2>&1 || true
+	fi
+}
+
 polypack_mcp_write_runtime_env() {
 	local limit_bytes="${1:-0}"
 	mkdir -p "$data_dir"

@@ -117,6 +117,7 @@ _write_hf_token_if_supplied() {
 
 run__do_install() {
 	local setup_args=()
+	polypack_mcp_stop_embedding_service
 	polypack_mcp_register_embedding_service
 	case "${embedding_model:-}" in
 		none) run__do_disable; return ;;
@@ -137,6 +138,7 @@ run__do_install() {
 }
 
 run__do_disable() {
+	polypack_mcp_stop_embedding_service
 	polypack_mcp_register_embedding_service
 	"$install_dir/venv/bin/polypack-mcp" embeddings disable --system --store "$data_dir" \
 		--main-service "${app}.service" \
