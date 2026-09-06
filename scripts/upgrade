@@ -26,8 +26,11 @@ polypack_mcp_install_venv
 # PRESERVE RUNTIME POLICY
 #=================================================
 limit_bytes="$(sed -n 's/^POLYPACK_MCP_STORAGE_LIMIT_BYTES=//p' "$(polypack_mcp_runtime_env_file)" 2>/dev/null || true)"
+if [ -z "$limit_bytes" ]; then
+	limit_bytes=$((2 * 1024 * 1024 * 1024))
+fi
 polypack_mcp_prepare_data_dir
-polypack_mcp_write_runtime_env "${limit_bytes:-0}"
+polypack_mcp_write_runtime_env "$limit_bytes"
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION
