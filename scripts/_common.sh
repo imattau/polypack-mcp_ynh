@@ -21,6 +21,6 @@ polypack_mcp_remove_upstream_runtime_artifacts() {
 	# The upstream development repository contains a local polypack-data
 	# directory. Runtime data belongs in YunoHost's data_dir instead.
 	if [ -d "$install_dir/polypack-data" ]; then
-		rm -rf "$install_dir/polypack-data"
+		ynh_safe_rm "$install_dir/polypack-data"
 	fi
 }
